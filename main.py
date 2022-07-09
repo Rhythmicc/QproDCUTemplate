@@ -21,6 +21,16 @@ else:
 roc_include = '/public/software/compiler/dtk-22.04/rocsparse/include'
 roc_lib = '/public/software/compiler/dtk-22.04/rocsparse/lib'
 
+includePath = [
+    roc_include,
+    'include',
+    'kernel',
+]
+
+libPath = [
+    roc_lib
+]
+
 
 def gflops_cal(ct: list):
     import re
@@ -81,7 +91,9 @@ def compile(version: str = latest, gpu: bool = False):
     """
     with QproDefaultConsole.status("编译中"):
         code, content = external_EXEC(
-            f"hipcc -Ofast -std=c++11 -I include -I kernel -I {roc_include} -L {roc_lib} {'-D gpu' if gpu else ''} -D VERSION='<{job_name}_v{version}.hpp>' -lomp -fopenmp -lrocsparse main.cpp -o {executable}", True)
+            f"hipcc -Ofast -std=c++11 -I {' -I '.join(includePath)} -L {' -L '.join(libPath)} {'-D gpu' if gpu else ''} -D VERSION='<{job_name}_v{version}.hpp>' -lomp -fopenmp -lrocsparse main.cpp -o {executable}", 
+            True
+        )
     if code:
         QproDefaultConsole.print(QproErrorString, content.replace('errors', '[bold red]errors[/bold red]').replace(
             'warnings', '[bold yellow]warnings[/bold yellow]').replace('error', '[bold red]error[/bold red]').replace('warning', '[bold yellow]warning[/bold yellow]'))
@@ -102,10 +114,10 @@ def run(batch: str = default_sbatch):
         return
     job_id = content.split()[-1]
     QproDefaultConsole.print(QproInfoString, f"任务提交成功，任务ID：{job_id}")
-    if _ask({
+    if last_id != '-1' and _ask({
         'type': 'confirm',
         'name': 'confirm',
-        'message': f'是否删除"log/{last_id}.loop"？',
+        'message': f'是否删除"log/{last_id}.loop"?',
         'default': True
     }):
         from QuickStart_Rhy import remove
