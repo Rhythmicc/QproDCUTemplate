@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/kernel",
+                "/public/software/compiler/dtk-22.04/include",
+                "/public/software/compiler/dtk-22.04/hip/include",
+                "/public/software/compiler/dtk-22.04/hip",
+                "/public/software/compiler/dtk-22.04/llvm/lib/clang/14.0.0"
+            ],
+            "defines": ["__clang__", "__HIP__"],
+            "compilerPath": "/opt/rocm/hip/bin/hipcc",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}
