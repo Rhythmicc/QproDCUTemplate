@@ -1,5 +1,4 @@
 #pragma once
-#include <common_function.hpp>
 #include <hip/hip_common.h>
 #include <hip/hip_runtime.h>
 

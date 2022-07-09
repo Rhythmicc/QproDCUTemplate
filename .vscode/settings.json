@@ -4,5 +4,6 @@
         "cmath": "cpp",
         "ostream": "cpp",
         "random": "cpp"
-    }
+    },
+    "python.formatting.provider": "autopep8"
 }
