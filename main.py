@@ -107,6 +107,7 @@ def compile(version: str = latest, gpu: bool = False):
 def run(batch: str = default_sbatch):
     """
     运行项目
+    :param batch: sbatch文件名
     """
     with QproDefaultConsole.status(f'提交任务 "{batch}.sbatch" 中'):
         code, content = external_EXEC(f"sbatch < dist/{batch}.sbatch", True)
@@ -131,6 +132,8 @@ def compile_and_run(version: str = latest, gpu: bool = False, batch: str = defau
     """
     编译并运行项目
     :param version: 编译版本
+    :param gpu: 是否使用GPU
+    :param batch: sbatch文件名
     """
     code, content = app.real_call('compile', version, gpu)
     if code:
