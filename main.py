@@ -1,4 +1,5 @@
 from dis import dis
+from operator import is_
 from QuickProject.Commander import Commander
 from QuickProject import QproDefaultConsole, QproInfoString, QproErrorString, _ask
 from subprocess import Popen, PIPE
@@ -46,6 +47,10 @@ def gflops_cal(ct: list):
         QproDefaultConsole.print(QproErrorString, '计算结果不完整')
         return -1
     return 2 * nnzCub / using_time / 1e3  # 依据A的行数计算的近似值
+
+
+def is_Success(ct: list):
+    return ct[-2].startswith('Congratulation')
 
 
 def get_version():
@@ -171,7 +176,7 @@ def status(job_id: str = last_id):
             ct = f.read().strip().split('\n')[1:]
             version = f'v{get_version()}'
             gflops = gflops_cal(ct)
-            if ct[-2].startswith('Congratulation'):
+            if is_Success(ct):
                 QproDefaultConsole.print(
                     QproInfoString, f'计算[bold green]通过[/bold green]，版本 "{version}" 性能：{gflops} GFlop/s')
                 if version not in record:

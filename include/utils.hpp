@@ -54,3 +54,14 @@ void prefix_sum(int *row_nnz, int size)
     __prefix_sum_warp<<<warp_num, WARP_SIZE>>>(row_nnz, size);
     __merge_warp<<<1, WARP_SIZE>>>(row_nnz, size);
 }
+
+float bit_len(int x)
+{
+    int res = 0;
+    while (x)
+    {
+        x >>= 1;
+        res++;
+    }
+    return res;
+}
