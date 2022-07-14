@@ -34,23 +34,21 @@ libPath = [
 
 
 def gflops_cal(ct: list):
-    import re
-    nnzCub = 0
-    using_time = -1
-    for line in ct:
-        if line.startswith('marix A:'):
-            nnzCub = int(line.strip().split()[-1])
-            nnzCub *= int(nnzCub / 5.23)
-        elif line.startswith('Device calculation finished!'):
-            using_time = float(re.findall('\d+', line)[0])
-    if nnzCub == 0 or using_time == -1:
-        QproDefaultConsole.print(QproErrorString, '计算结果不完整')
-        return -1
-    return 2 * nnzCub / using_time / 1e3  # 依据A的行数计算的近似值
+    """
+    在此自定义计算GFLOPS的方式
+    
+    :param ct: 日志文件的每行内容
+    """
+    return 0
 
 
 def is_Success(ct: list):
-    return ct[-2].startswith('Congratulation')
+    """
+    在此自定义判断是否成功
+
+    :param ct: 日志文件的每行内容
+    """
+    return True
 
 
 def get_version():
@@ -181,15 +179,15 @@ def status(job_id: str = last_id):
                     QproInfoString, f'计算[bold green]通过[/bold green]，版本 "{version}" 性能：{gflops} GFlop/s')
                 if version not in record:
                     record[version] = gflops
-                    os.system(
-                        f'cp kernel/{job_name}_{version}.hpp template/{job_name}_{version}.hpp')
+                    import shutil
+                    shutil.copy(f'kernel/{job_name}_{version}.hpp', f'template/{job_name}_{version}.hpp')
                     QproDefaultConsole.print(
                         QproInfoString, f'版本 "{version}" 的最佳实现已保存')
                     dump_record()
                 elif gflops > record[version]:
                     record[version] = gflops
-                    os.system(
-                        f'cp kernel/{job_name}_{version}.hpp template/{job_name}_{version}.hpp')
+                    import shutil
+                    shutil.copy(f'kernel/{job_name}_{version}.hpp', f'template/{job_name}_{version}.hpp')
                     QproDefaultConsole.print(
                         QproInfoString, f'版本 "{version}" 的最佳实现已保存')
                     dump_record()
