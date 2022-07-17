@@ -29,14 +29,15 @@
 |  include  | 必要的核函数编写需要的头文件，基础的工具集（可以在此实现无关紧要的 API）                                 |
 |  kernel   | 保存实现的核函数不同版本，必须以`QproDCUTemplate_v<版本号>.hpp`命名                                      |
 |    log    | 保存提交至任务队列的程序的输出                                                                           |
-| template  | 保存性能最高的版本（通过解析输出的 log 文件），你可以修改`main.py`中的`gflops_cal`函数，自定义解析规则。 |
+| template  | 保存性能最高的版本（通过解析输出的 log 文件），你可以修改`config/__init__.py`中的`gflops_cal`函数，自定义解析规则。 |
+| config    | 配置表与辅助器                                                                                |
 
 ## 运行
 
-1. 第一次运行前: 修改`dist/QproDCUTemplate.sbatch`文件，将`你的任务队列名`替换为你的任务队列。
+1. 第一次运行前: 修改`dist/QproDCUTemplate.sbatch`文件，将`你的任务队列名`替换为你的任务队列，填写`config/__init__.py`中的相关配置（包括性能计算函数、判定是否计算成功函数、includePath、libraryPath）。
 2. `qrun run`即可直接使用`dist/QproDCUTemplate.sbatch`文件作为任务提交，若你有其他`sbatch`文件，请将它拷贝至`dist`文件夹，通过`qrun run --batch <其他batch文件名>`方式调用。
 3. 在`main.py`中，你可以修改`gflops_cal`和`is_Success`函数来自定义性能统计方式和计算结果是否成功的判定，传入的`ct: list`参数存储了当前任务日志文件的每行字符串。
 
 ## 高级
 
-如果希望增加子命令，可以参照`main.py`文件中实现的以`@app.command()`装饰的函数自行设计。Qpro Commander 能够解析 int, float, str, list 四种类型的参数，函数体的注释用于描述此命令的含义和参数的含义。
+如果希望增加子命令，可以参照`config/main.py`文件中实现的以`@app.command()`装饰的函数自行设计。Qpro Commander 能够解析 int, float, str, list 四种类型的参数，函数体的注释用于描述此命令的含义和参数的含义。
