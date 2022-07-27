@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -J QproDCUTemplate
-#SBATCH -p 你的任务队列名
+#SBATCH -p your queue name
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH --gres=dcu:1
