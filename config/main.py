@@ -60,7 +60,10 @@ def run(batch: str = default_sbatch):
         from QuickStart_Rhy import remove
         remove(f"log/{last_id}.loop")
     with open('dist/last_id', 'w') as f:
-        f.write(job_id)
+        json.dump({
+            "last_id": job_id,
+            "last_batch": batch
+        }, f)
 
 
 @app.command()
