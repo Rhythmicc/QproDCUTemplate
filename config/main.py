@@ -88,13 +88,23 @@ def status(job_id: str = last_id, real_time: bool = False):
     :param job_id: 任务ID
     :param real_time: 是否实时显示输出
     """
+    def get_squeue():
+        code, content = external_EXEC(
+            f"squeue --name={job_name}", without_output=True)
+        return code, content
+
     def show_log(real_time: bool = False):
-        def get_content(line_num: int = -1):
+        global cur_line_num
+        def get_content(show_all: bool = True):
+            global cur_line_num
             with open(f'log/{job_id}.loop', 'r') as f:
-                if line_num < 0:
+                if show_all:
                     ct = f.read().strip()
                 else:
-                    ct = ''.join(f.readlines()[-line_num:])
+                    ct = f.readlines()
+                    _len = len(ct)
+                    ct = ''.join(ct[cur_line_num:])
+                    cur_line_num = _len
             return ct
         if not os.path.exists(f'log/{job_id}.loop'):
             return 
@@ -104,20 +114,25 @@ def status(job_id: str = last_id, real_time: bool = False):
             QproDefaultConsole.print(Panel(
                 ct, title='[bold magenta]当前输出[/bold magenta]', width=QproDefaultConsole.width))
         else:
-            from rich.live import Live
             import time
-            rate = 1 / refresh_second
-            with Live(get_content(QproDefaultConsole.height - 1), refresh_per_second=rate) as live:
-                while True:
-                    try:
-                        live.update(get_content(QproDefaultConsole.height - 1))
-                        time.sleep(refresh_second)
-                    except KeyboardInterrupt:
+            
+            while True:
+                try:
+                    code, content = get_squeue()
+                    if code:
                         break
+                    ct = get_content(False).strip()
+                    if ct:
+                        QproDefaultConsole.print(ct)
+                    items = [i.strip().split() for i in content.split('\n')[1:]]
+                    if not items:
+                        break
+                    time.sleep(5)
+                except KeyboardInterrupt:
+                    break
 
     with QproDefaultConsole.status("查询状态中"):
-        code, content = external_EXEC(
-            f"squeue --name={job_name}", without_output=True)
+        code, content = get_squeue()
     if code:
         return
     from QuickStart_Rhy.TuiTools.Table import qs_default_table
