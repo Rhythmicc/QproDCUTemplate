@@ -1,4 +1,5 @@
 import pickle
+import json
 import os
 
 job_name = 'QproDCUTemplate'
@@ -18,8 +19,9 @@ libPath = [
     roc_lib
 ]
 
+performance_unit = 'GFlop/s'
 
-def gflops_cal(ct: list):
+def performance_cal(ct: list, last_batch: str = 'QproDCUTemplate'):
     """
     在此自定义计算GFLOPS的方式
     
@@ -28,7 +30,7 @@ def gflops_cal(ct: list):
     return 0
 
 
-def is_Success(ct: list):
+def is_Success(ct: list, last_batch: str = 'QproDCUTemplate'):
     """
     在此自定义判断是否成功
 
@@ -38,7 +40,9 @@ def is_Success(ct: list):
 
 
 with open('dist/last_id', 'r') as f:
-    last_id = f.read()
+    _dt = json.load(f)
+    last_id = _dt['last_id']
+    last_batch = _dt['last_batch']
 
 if os.path.exists('dist/record'):
     with open('dist/record', 'rb') as f:

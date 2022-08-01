@@ -106,19 +106,19 @@ def status(job_id: str = last_id):
         with open(f'log/{job_id}.loop', 'r') as f:
             ct = f.read().strip().split('\n')[1:]
             version = f'v{get_version()}'
-            gflops = gflops_cal(ct)
-            if is_Success(ct):
+            if is_Success(ct, last_batch):
+                performance = performance_cal(ct, last_batch)
                 QproDefaultConsole.print(
-                    QproInfoString, f'计算[bold green]通过[/bold green]，版本 "{version}" 性能：{gflops} GFlop/s')
+                    QproInfoString, f'计算[bold green]通过[/bold green]，版本 "{version}" 指标：{performance} {performance_unit}')
                 if version not in record:
-                    record[version] = gflops
+                    record[version] = performance
                     import shutil
                     shutil.copy(f'kernel/{job_name}_{version}.hpp', f'template/{job_name}_{version}.hpp')
                     QproDefaultConsole.print(
                         QproInfoString, f'版本 "{version}" 的最佳实现已保存')
                     dump_record()
-                elif gflops > record[version]:
-                    record[version] = gflops
+                elif performance > record[version]:
+                    record[version] = performance
                     import shutil
                     shutil.copy(f'kernel/{job_name}_{version}.hpp', f'template/{job_name}_{version}.hpp')
                     QproDefaultConsole.print(
@@ -126,7 +126,7 @@ def status(job_id: str = last_id):
                     dump_record()
             else:
                 QproDefaultConsole.print(
-                    QproErrorString, f'计算[bold red]错误[/bold red]，版本 "{version}" 性能：{gflops} GFlop/s')
+                    QproErrorString, f'计算[bold red]错误[/bold red]，版本 "{version}" 性能：{performance} {performance_unit}')
         return
     for item in items:
         table.add_row(*item)
