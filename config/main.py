@@ -82,18 +82,38 @@ def compile_and_run(version: str = latest, gpu: bool = False, batch: str = defau
 
 
 @app.command()
-def status(job_id: str = last_id):
+def status(job_id: str = last_id, real_time: bool = False):
     """
     查看状态
     :param job_id: 任务ID
+    :param real_time: 是否实时显示输出
     """
-    def show_log():
-        if os.path.exists(f'log/{job_id}.loop'):
-            from rich.panel import Panel
+    def show_log(real_time: bool = False):
+        def get_content(line_num: int = -1):
             with open(f'log/{job_id}.loop', 'r') as f:
-                ct = f.read().strip()
+                if line_num < 0:
+                    ct = f.read().strip()
+                else:
+                    ct = ''.join(f.readlines()[-line_num:])
+            return ct
+        if not os.path.exists(f'log/{job_id}.loop'):
+            return 
+        if not real_time:
+            from rich.panel import Panel
+            ct = get_content()
             QproDefaultConsole.print(Panel(
                 ct, title='[bold magenta]当前输出[/bold magenta]', width=QproDefaultConsole.width))
+        else:
+            from rich.live import Live
+            import time
+            rate = 1 / refresh_second
+            with Live(get_content(QproDefaultConsole.height - 1), refresh_per_second=rate) as live:
+                while True:
+                    try:
+                        live.update(get_content(QproDefaultConsole.height - 1))
+                        time.sleep(refresh_second)
+                    except KeyboardInterrupt:
+                        break
 
     with QproDefaultConsole.status("查询状态中"):
         code, content = external_EXEC(
@@ -135,7 +155,7 @@ def status(job_id: str = last_id):
         table.add_row(*item)
     QproDefaultConsole.print(table, justify='center')
     QproDefaultConsole.print()
-    show_log()
+    show_log(real_time)
 
 
 @app.command()

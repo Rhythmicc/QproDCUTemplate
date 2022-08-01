@@ -19,6 +19,8 @@ libPath = [
     roc_lib
 ]
 
+refresh_second = 5
+
 performance_unit = 'GFlop/s'
 
 def performance_cal(ct: list, last_batch: str = 'QproDCUTemplate'):
