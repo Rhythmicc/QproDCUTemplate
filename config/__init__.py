@@ -23,7 +23,7 @@ refresh_second = 5
 
 performance_unit = 'GFlop/s'
 
-def performance_cal(ct: list, last_batch: str = 'QproDCUTemplate'):
+def performance_cal(ct: list, last_batch: str = job_name):
     """
     在此自定义计算GFLOPS的方式
     
@@ -32,7 +32,7 @@ def performance_cal(ct: list, last_batch: str = 'QproDCUTemplate'):
     return 0
 
 
-def is_Success(ct: list, last_batch: str = 'QproDCUTemplate'):
+def is_Success(ct: list, last_batch: str = job_name):
     """
     在此自定义判断是否成功
 
