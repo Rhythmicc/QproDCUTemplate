@@ -93,8 +93,10 @@ def status(job_id: str = last_id, real_time: bool = False):
             f"squeue --name={job_name}", without_output=True)
         return code, content
 
+    global cur_line_num
+    cur_line_num = 0
+
     def show_log(real_time: bool = False):
-        global cur_line_num
         def get_content(show_all: bool = True):
             global cur_line_num
             with open(f'log/{job_id}.loop', 'r') as f:
