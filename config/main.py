@@ -108,30 +108,25 @@ def status(job_id: str = last_id, real_time: bool = False):
                     ct = ''.join(ct[cur_line_num:])
                     cur_line_num = _len
             return ct
-        if not os.path.exists(f'log/{job_id}.loop'):
-            return 
-        if not real_time:
-            from rich.panel import Panel
-            ct = get_content()
-            QproDefaultConsole.print(Panel(
-                ct, title='[bold magenta]当前输出[/bold magenta]', width=QproDefaultConsole.width))
-        else:
-            import time
+        import time
+
+        while not os.path.exists(f'log/{job_id}.loop'):
+            time.sleep(1)
             
-            while True:
-                try:
-                    code, content = get_squeue()
-                    if code:
-                        break
-                    ct = get_content(False).strip()
-                    if ct:
-                        QproDefaultConsole.print(ct)
-                    items = [i.strip().split() for i in content.split('\n')[1:]]
-                    if not items:
-                        break
-                    time.sleep(5)
-                except KeyboardInterrupt:
+        while True:
+            try:
+                code, content = get_squeue()
+                if code:
                     break
+                ct = get_content(False).strip()
+                if ct:
+                    QproDefaultConsole.print(ct)
+                items = [i.strip().split() for i in content.split('\n')[1:]]
+                if not items:
+                    break
+                time.sleep(5)
+            except KeyboardInterrupt:
+                break
 
     with QproDefaultConsole.status("查询状态中"):
         code, content = get_squeue()
@@ -142,7 +137,6 @@ def status(job_id: str = last_id, real_time: bool = False):
         ['任务ID', '任务队列', '任务名称', '用户', '状态', '用时', '节点数目', '节点列表'], title='任务队列\n')
     items = [i.strip().split() for i in content.split('\n')[1:]]
     if not items:
-        show_log()
         with open(f'log/{job_id}.loop', 'r') as f:
             ct = f.read().strip().split('\n')[1:]
             version = f'v{get_version()}'
@@ -157,7 +151,7 @@ def status(job_id: str = last_id, real_time: bool = False):
                     QproDefaultConsole.print(
                         QproInfoString, f'版本 "{version}" 的最佳实现已保存')
                     dump_record()
-                elif performance > record[version]:
+                elif performance_cmp(performance, record[version]):
                     record[version] = performance
                     import shutil
                     shutil.copy(f'kernel/{job_name}_{version}.hpp', f'template/{job_name}_{version}.hpp')
@@ -165,8 +159,9 @@ def status(job_id: str = last_id, real_time: bool = False):
                         QproInfoString, f'版本 "{version}" 的最佳实现已保存')
                     dump_record()
             else:
+                show_log()
                 QproDefaultConsole.print(
-                    QproErrorString, f'计算[bold red]错误[/bold red]，版本 "{version}" 性能：{performance} {performance_unit}')
+                    QproErrorString, f'计算[bold red]错误[/bold red]，版本 "{version}"')
         return
     for item in items:
         table.add_row(*item)

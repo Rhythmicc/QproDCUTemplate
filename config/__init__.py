@@ -21,15 +21,26 @@ libPath = [
 
 refresh_second = 5
 
-performance_unit = 'GFlop/s'
+performance_unit = 'GFlop/s' # 性能单位
 
 def performance_cal(ct: list, last_batch: str = job_name):
     """
-    在此自定义计算GFLOPS的方式
+    在此自定义计算性能的方式
     
     :param ct: 日志文件的每行内容
     """
     return 0
+
+
+def performance_cmp(performance_now, performance_record) -> bool:
+    """
+    在此自定义比较两个性能的方式
+
+    :param performance_now: 当前性能
+    :param performance_record: 记录性能
+    :return: 是否更好
+    """
+    return performance_now > performance_record
 
 
 def is_Success(ct: list, last_batch: str = job_name):
