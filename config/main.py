@@ -162,8 +162,8 @@ def status(job_id: str = last_id, batch: str = last_batch, _kill_flag: bool = Fa
                 time.sleep(refresh_second)
         except KeyboardInterrupt:
             if _kill_flag:
-                QproDefaultConsole.print(QproInfoString, '正在终止任务')
                 app.real_call('cancel', job_id)
+                exit(0)
         except:
             return
 
