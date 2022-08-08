@@ -96,7 +96,7 @@ def run(batch: str = default_sbatch, _with_permission: bool = False):
             "last_id": job_id,
             "last_batch": batch
         }, f)
-    app.real_call('status', job_id, batch)
+    app.real_call('status', job_id, batch, True)
     if not _with_permission:
         release()
 
@@ -123,7 +123,7 @@ def compile_and_run(version: str = latest, gpu: bool = False, batch: str = defau
 
 
 @app.command()
-def status(job_id: str = last_id, batch: str = last_batch):
+def status(job_id: str = last_id, batch: str = last_batch, _kill_flag: bool = False):
     """
     查看状态
     :param job_id: 任务ID
@@ -146,11 +146,11 @@ def status(job_id: str = last_id, batch: str = last_batch):
             return ct
         import time
 
-        while not os.path.exists(f'log/{job_id}.loop'):
-            time.sleep(1)
+        try:
+            while not os.path.exists(f'log/{job_id}.loop'):
+                time.sleep(refresh_second)
     
-        while True:
-            try:
+            while True:
                 items = get_squeue()
                 if items == -1:
                     break
@@ -159,9 +159,14 @@ def status(job_id: str = last_id, batch: str = last_batch):
                     QproDefaultConsole.print(ct)
                 if not items:
                     break
-                time.sleep(5)
-            except KeyboardInterrupt:
-                break
+                time.sleep(refresh_second)
+        except KeyboardInterrupt:
+            if _kill_flag:
+                QproDefaultConsole.print(QproInfoString, '正在终止任务')
+                app.real_call('cancel', job_id)
+        except:
+            return
+
 
     items = get_squeue()
     if items == -1:
@@ -208,6 +213,7 @@ def cancel(job_id: str = last_id):
     """
     with QproDefaultConsole.status("取消任务中"):
         external_EXEC(f"scancel {job_id}")
+    release()
 
 
 @app.command()
@@ -233,7 +239,7 @@ def show():
     table = qs_default_table(['版本', '性能 (GFlops)', '最佳版本'], title=f'性能表\n')
     for item in sorted(list(record.keys()), key=lambda x: int(x[1:])):
         table.add_row(item, str(
-            record[item]), '[bold green]√[/bold green]' if record[item] == max(record.values()) else '')
+            record[item]), '[bold green]√[/bold green]' if record[item] == performance_best(record.values()) else '')
     QproDefaultConsole.print(table, justify='center')
 
 

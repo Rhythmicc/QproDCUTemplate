@@ -43,6 +43,15 @@ def performance_cmp(performance_now, performance_record) -> bool:
     return performance_now > performance_record
 
 
+def performance_best(performance_list: list):
+    """
+    在此自定义计算最佳性能的方式
+
+    :param performance_list: 所有性能列表
+    """
+    return max(performance_list)
+
+
 def is_Success(ct: list, last_batch: str = job_name):
     """
     在此自定义判断是否成功
