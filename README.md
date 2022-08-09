@@ -34,7 +34,7 @@
 
 ## 运行
 
-1. 第一次运行前: 修改`dist/QproDCUTemplate.sbatch`文件，将`你的任务队列名`替换为你的任务队列，填写`config/__init__.py`中的相关配置（包括性能计算函数、判定是否计算成功函数、includePath、libraryPath）。
+1. **<font color='red'>第一次运行前</font>>: 修改`dist/QproDCUTemplate.sbatch`文件，将`你的任务队列名`替换为你的任务队列，填写`config/__init__.py`中的相关配置（包括性能计算函数、判定是否计算成功函数、includePath、libraryPath）。**
 2. `qrun run`即可直接使用`dist/QproDCUTemplate.sbatch`文件作为任务提交，若你有其他`sbatch`文件，请将它拷贝至`dist`文件夹，通过`qrun run --batch <其他batch文件名>`方式调用。
 3. 在`main.py`中，你可以修改`gflops_cal`和`is_Success`函数来自定义性能统计方式和计算结果是否成功的判定，传入的`ct: list`参数存储了当前任务日志文件的每行字符串。
 
