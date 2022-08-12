@@ -92,7 +92,12 @@ def compile(version: str = latest, gpu: bool = False, _with_permission: bool = F
         lock()
     with QproDefaultConsole.status('生成任务文件中'):
         with open('dist/jobs.sh', 'r') as f:
-            content = f.read().strip()
+            _ls = f.read().strip().split('\n')
+            content = ''
+            for line in _ls:
+                if line.startswith('#'):
+                    continue
+                content += line + '\n'
         with open(f'dist/{default_sbatch}.sbatch', 'w') as f:
             print(f"""#!/bin/bash
 #SBATCH -J {job_name}
