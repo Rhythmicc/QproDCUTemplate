@@ -2,6 +2,7 @@ from QuickProject.Commander import Commander
 from QuickProject import QproDefaultConsole, QproInfoString, QproErrorString, _ask
 from subprocess import Popen, PIPE
 from . import *
+from . import _status_show_log
 
 
 app = Commander(True)
@@ -135,6 +136,9 @@ def run(_with_permission: bool = False):
     """
     global last_id
     global last_batch
+    global _status_show_log
+
+    _status_show_log = True
     items = get_squeue()
     if items == -1:
         return
@@ -212,7 +216,8 @@ def status(job_id: str = last_id, _kill_flag: bool = False):
         table.add_row(*item)
     QproDefaultConsole.print(table, justify='center')
     QproDefaultConsole.print()
-    show_log(job_id, _kill_flag)
+    if _status_show_log:
+        show_log(job_id, _kill_flag)
     with open(f'log/{job_id}.loop', 'r') as f:
         ct = f.read().strip().split('\n')[1:]
         version = f'v{get_version()}'

@@ -94,3 +94,4 @@ def dump_record():
 
 
 latest = latest_version()
+_status_show_log = False
