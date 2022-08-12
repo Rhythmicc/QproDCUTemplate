@@ -91,7 +91,7 @@ def compile(version: str = latest, gpu: bool = False, _with_permission: bool = F
     if not _with_permission:
         lock()
     with QproDefaultConsole.status('生成任务文件中'):
-        with open('dist/job.sh', 'r') as f:
+        with open('dist/jobs.sh', 'r') as f:
             content = f.read().strip()
         with open(f'dist/{default_sbatch}.sbatch', 'w') as f:
             print(f"""#!/bin/bash
