@@ -5,10 +5,11 @@ import os
 job_name = 'QproDCUTemplate'
 default_sbatch = job_name
 executable = f'dist/{job_name}'
+dtk_path = '/public/software/compiler/dtk-22.04'
 
-hipcc = '/public/software/compiler/dtk-22.04/hip/bin/hipcc'
-roc_include = '/public/software/compiler/dtk-22.04/rocsparse/include'
-roc_lib = '/public/software/compiler/dtk-22.04/rocsparse/lib'
+hipcc = f'{dtk_path}/hip/bin/hipcc'
+roc_include = f'{dtk_path}/rocsparse/include'
+roc_lib = f'{dtk_path}/rocsparse/lib'
 
 includePath = [
     roc_include,
