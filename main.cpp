@@ -10,9 +10,10 @@
 
 using namespace std;
 
-int main(int argc, char **argv) {
-  hipSetDevice(0);
-  float gflops = QproDCUTemplate();
-  cout << "gflops: " << gflops << endl;
-  return 0;
+int main(int argc, char **argv)
+{
+    hipSetDevice(0);
+    float gflops = QproDCUTemplate();
+    cout << "gflops: " << gflops << endl;
+    return 0;
 }

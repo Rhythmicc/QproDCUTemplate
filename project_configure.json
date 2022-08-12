@@ -1,6 +1,6 @@
 {
  "compile_tool": "",
- "compile_filename": "main.py",
+ "compile_filename": "config/main.py",
  "executable_filename": "python3 -m config.main",
  "input_file": "dist/input.txt",
  "template_root": "template/",

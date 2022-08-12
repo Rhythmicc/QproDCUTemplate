@@ -40,6 +40,48 @@ def release():
     external_EXEC('rm dist/lock')
 
 
+def show_log(job_id, kill_flag):
+    def get_content(show_all: bool = True):
+        global cur_line_num
+        with open(f'log/{job_id}.loop', 'r') as f:
+            if show_all:
+                ct = f.read().strip()
+            else:
+                ct = f.readlines()
+                _len = len(ct)
+                ct = ''.join(ct[cur_line_num:])
+                cur_line_num = _len
+        return ct
+    import time
+
+    try:
+        while not os.path.exists(f'log/{job_id}.loop'):
+            time.sleep(refresh_second)
+
+        while True:
+            items = get_squeue()
+            if items == -1:
+                break
+            ct = get_content(False).strip()
+            if ct:
+                QproDefaultConsole.print(ct)
+            if not items:
+                break
+            time.sleep(refresh_second)
+    except KeyboardInterrupt:
+        if kill_flag and _ask({
+            'type': 'confirm',
+            'name': 'confirm',
+            'message': '是否终止任务?',
+            'default': False
+        }):
+            app.real_call('cancel', job_id)
+            # exit(0)
+            raise SystemExit(0)
+    except:
+        return
+
+
 @app.command()
 def compile(version: str = latest, gpu: bool = False, _with_permission: bool = False):
     """
@@ -48,27 +90,38 @@ def compile(version: str = latest, gpu: bool = False, _with_permission: bool = F
     """
     if not _with_permission:
         lock()
-    with QproDefaultConsole.status("编译中"):
-        code, content = external_EXEC(
-            f"hipcc -Ofast -std=c++11 -I {' -I '.join(includePath)} -L {' -L '.join(libPath)} {'-D gpu' if gpu else ''} -D VERSION='<{job_name}_v{version}.hpp>' -lomp -fopenmp -lrocsparse main.cpp -o {executable}", 
-            True
-        )
+    with QproDefaultConsole.status('生成任务文件中'):
+        with open('dist/job.sh', 'r') as f:
+            content = f.read().strip()
+        with open(f'dist/{default_sbatch}.sbatch', 'w') as f:
+            print(f"""#!/bin/bash
+#SBATCH -J {job_name}
+#SBATCH -p ty_xd
+#SBATCH -N 1
+#SBATCH -n 8
+#SBATCH --gres=dcu:1
+#SBATCH --mem=90G
+#SBATCH -o log/%j.loop
+#SBATCH -e log/%j.loop
+
+module unload compiler/rocm/3.3
+module unload compiler/dtk/21.10
+module load apps/anaconda3/5.2.0
+module load compiler/dtk/22.04
+
+cd ${{HOME}}/{job_name}
+
+{hipcc} -Ofast -std=c++11 -I {' -I '.join(includePath)} -L {' -L '.join(libPath)} {'-D gpu' if gpu else ''} -D VERSION='<{job_name}_v{version}.hpp>' -lomp -fopenmp -lrocsparse main.cpp -o {executable}
+
+{content}""", file=f)
     if not _with_permission:
         release()
-    if code:
-        QproDefaultConsole.print(QproErrorString, content.replace('errors', '[bold red]errors[/bold red]').replace(
-            'warnings', '[bold yellow]warnings[/bold yellow]').replace('error', '[bold red]error[/bold red]').replace('warning', '[bold yellow]warning[/bold yellow]'))
-    else:
-        with open('dist/version', 'w') as f:
-            f.write(version)
-    return code, content
 
 
 @app.command()
-def run(batch: str = default_sbatch, _with_permission: bool = False):
+def run(_with_permission: bool = False):
     """
     运行项目
-    :param batch: sbatch文件名
     """
     global last_id
     global last_batch
@@ -77,6 +130,7 @@ def run(batch: str = default_sbatch, _with_permission: bool = False):
         return
     if not _with_permission:
         lock()
+    batch = default_sbatch
     with QproDefaultConsole.status(f'提交任务 "{batch}.sbatch" 中'):
         code, content = external_EXEC(f"sbatch < dist/{batch}.sbatch", True)
     if code:
@@ -96,13 +150,20 @@ def run(batch: str = default_sbatch, _with_permission: bool = False):
             "last_id": job_id,
             "last_batch": batch
         }, f)
-    app.real_call('status', job_id, batch, True)
     if not _with_permission:
-        release()
+        try:
+            app.real_call('status', job_id, True)
+            release()
+        except SystemExit:
+            return
+        except:
+            release()
+    else:
+        app.real_call('status', job_id, True)
 
 
 @app.command()
-def compile_and_run(version: str = latest, gpu: bool = False, batch: str = default_sbatch):
+def compile_and_run(version: str = latest, gpu: bool = False):
     """
     编译并运行项目
     :param version: 编译版本
@@ -111,11 +172,10 @@ def compile_and_run(version: str = latest, gpu: bool = False, batch: str = defau
     """
     lock()
     try:
-        code, content = app.real_call('compile', version, gpu, True)
-        if code:
-            QproDefaultConsole.print(QproErrorString, '编译失败')
-            return
-        app.real_call('run', batch, True)
+        app.real_call('compile', version, gpu, True)
+        app.real_call('run', True)
+    except SystemExit:
+        return
     except:
         release()
     finally:
@@ -123,7 +183,7 @@ def compile_and_run(version: str = latest, gpu: bool = False, batch: str = defau
 
 
 @app.command()
-def status(job_id: str = last_id, batch: str = last_batch, _kill_flag: bool = False):
+def status(job_id: str = last_id, _kill_flag: bool = False):
     """
     查看状态
     :param job_id: 任务ID
@@ -131,42 +191,6 @@ def status(job_id: str = last_id, batch: str = last_batch, _kill_flag: bool = Fa
     """
     global cur_line_num
     cur_line_num = 0
-
-    def show_log():
-        def get_content(show_all: bool = True):
-            global cur_line_num
-            with open(f'log/{job_id}.loop', 'r') as f:
-                if show_all:
-                    ct = f.read().strip()
-                else:
-                    ct = f.readlines()
-                    _len = len(ct)
-                    ct = ''.join(ct[cur_line_num:])
-                    cur_line_num = _len
-            return ct
-        import time
-
-        try:
-            while not os.path.exists(f'log/{job_id}.loop'):
-                time.sleep(refresh_second)
-    
-            while True:
-                items = get_squeue()
-                if items == -1:
-                    break
-                ct = get_content(False).strip()
-                if ct:
-                    QproDefaultConsole.print(ct)
-                if not items:
-                    break
-                time.sleep(refresh_second)
-        except KeyboardInterrupt:
-            if _kill_flag:
-                app.real_call('cancel', job_id)
-                exit(0)
-        except:
-            return
-
 
     items = get_squeue()
     if items == -1:
@@ -178,25 +202,27 @@ def status(job_id: str = last_id, batch: str = last_batch, _kill_flag: bool = Fa
         table.add_row(*item)
     QproDefaultConsole.print(table, justify='center')
     QproDefaultConsole.print()
-    show_log()
+    show_log(job_id, _kill_flag)
     with open(f'log/{job_id}.loop', 'r') as f:
         ct = f.read().strip().split('\n')[1:]
         version = f'v{get_version()}'
-        if is_Success(ct, batch):
-            performance = performance_cal(ct, batch)
+        if is_Success(ct):
+            performance = performance_cal(ct)
             QproDefaultConsole.print(
                 QproInfoString, f'计算[bold green]通过[/bold green]，版本 "{version}" 指标：{performance} {performance_unit}')
             if version not in record:
                 record[version] = performance
                 import shutil
-                shutil.copy(f'kernel/{job_name}_{version}.hpp', f'template/{job_name}_{version}.hpp')
+                shutil.copy(f'kernel/{job_name}_{version}.hpp',
+                            f'template/{job_name}_{version}.hpp')
                 QproDefaultConsole.print(
                     QproInfoString, f'版本 "{version}" 的最佳实现已保存')
                 dump_record()
             elif performance_cmp(performance, record[version]):
                 record[version] = performance
                 import shutil
-                shutil.copy(f'kernel/{job_name}_{version}.hpp', f'template/{job_name}_{version}.hpp')
+                shutil.copy(f'kernel/{job_name}_{version}.hpp',
+                            f'template/{job_name}_{version}.hpp')
                 QproDefaultConsole.print(
                     QproInfoString, f'版本 "{version}" 的最佳实现已保存')
                 dump_record()
@@ -236,7 +262,8 @@ def show():
     查看记录
     """
     from QuickStart_Rhy.TuiTools.Table import qs_default_table
-    table = qs_default_table(['版本', '性能 (GFlops)', '最佳版本'], title=f'性能表\n')
+    table = qs_default_table(
+        ['版本', f'性能指标 ({performance_unit})', '最佳版本'], title=f'性能表\n')
     for item in sorted(list(record.keys()), key=lambda x: int(x[1:])):
         table.add_row(item, str(
             record[item]), '[bold green]√[/bold green]' if record[item] == performance_best(record.values()) else '')

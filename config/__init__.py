@@ -6,6 +6,7 @@ job_name = 'QproDCUTemplate'
 default_sbatch = job_name
 executable = f'dist/{job_name}'
 
+hipcc = '/public/software/compiler/dtk-22.04/hip/bin/hipcc'
 roc_include = '/public/software/compiler/dtk-22.04/rocsparse/include'
 roc_lib = '/public/software/compiler/dtk-22.04/rocsparse/lib'
 
@@ -23,7 +24,7 @@ refresh_second = 5
 
 performance_unit = 'GFlop/s' # 性能单位
 
-def performance_cal(ct: list, last_batch: str = job_name):
+def performance_cal(ct: list):
     """
     在此自定义计算性能的方式
     
@@ -52,7 +53,7 @@ def performance_best(performance_list: list):
     return max(performance_list)
 
 
-def is_Success(ct: list, last_batch: str = job_name):
+def is_Success(ct: list):
     """
     在此自定义判断是否成功
 
