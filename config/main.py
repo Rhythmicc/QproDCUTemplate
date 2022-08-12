@@ -125,6 +125,8 @@ echo [bold cyan]信息[/bold cyan] 编译完成
 echo [bold cyan]信息[/bold cyan] 开始运行
 
 {content}""", file=f)
+        with open('dist/version', 'w') as f:
+            f.write(version)
     if not _with_permission:
         release()
 
