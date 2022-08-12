@@ -116,7 +116,12 @@ module load compiler/dtk/22.04
 
 cd ${{HOME}}/{job_name}
 
+echo [bold cyan]信息[/bold cyan] 编译中...
+
 {hipcc} -Ofast -std=c++11 -I {' -I '.join(includePath)} -L {' -L '.join(libPath)} {'-D gpu' if gpu else ''} -D VERSION='<{job_name}_v{version}.hpp>' -lomp -fopenmp -lrocsparse main.cpp -o {executable}
+
+echo [bold cyan]信息[/bold cyan] 编译完成
+echo [bold cyan]信息[/bold cyan] 开始运行
 
 {content}""", file=f)
     if not _with_permission:
