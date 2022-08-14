@@ -1,3 +1,4 @@
+from QuickProject import QproDefaultConsole, QproInfoString, QproErrorString
 import pickle
 import json
 import os
@@ -22,6 +23,10 @@ libPath = [
 ]
 
 refresh_second = 5
+
+users = [
+    # 在此自定义用户列表，用户 "QproDCUTemplate" 必须存在
+]
 
 performance_unit = 'GFlop/s' # 性能单位
 
@@ -63,16 +68,33 @@ def is_Success(ct: list):
     return True
 
 
-with open('dist/last_id', 'r') as f:
-    _dt = json.load(f)
-    last_id = _dt['last_id']
-    last_batch = _dt['last_batch']
+def get_last_id(user: str = ''):
+    last_id_path = f'dist/{user}_last_id' if user else 'dist/last_id'
+    with open(last_id_path, 'r') as f:
+        _dt = json.load(f)
+        last_id = _dt['last_id']
+        last_batch = _dt['last_batch']
+    return last_id, last_batch
 
-if os.path.exists('dist/record'):
-    with open('dist/record', 'rb') as f:
-        record = pickle.load(f)
-else:
-    record = {}
+
+def set_last_id(last_id: int, last_batch: int, user: str = ''):
+    last_id_path = f'dist/{user}_last_id' if user else 'dist/last_id'
+    with open(last_id_path, 'w') as f:
+        json.dump({'last_id': last_id, 'last_batch': last_batch}, f)
+
+
+def get_record():
+    if os.path.exists('dist/record'):
+        with open('dist/record', 'rb') as f:
+            record = pickle.load(f)
+    else:
+        record = {}
+    return record
+
+
+def dump_record(record):
+    with open('dist/record', 'wb') as f:
+        pickle.dump(record, f)
 
 
 def get_version():
@@ -88,10 +110,6 @@ def latest_version():
     return str(max(files))
 
 
-def dump_record():
-    with open('dist/record', 'wb') as f:
-        pickle.dump(record, f)
-
-
 latest = latest_version()
 _status_show_log = False
+_with_permission: bool = False
