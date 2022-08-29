@@ -1,16 +1,16 @@
 {
- "compile_tool": "",
- "compile_filename": "config/main.py",
- "executable_filename": "python3 -m config.main",
- "input_file": "dist/input.txt",
- "template_root": "template/",
- "server_targets": [
-  {
-   "user": "",
-   "host": "",
-   "port": 22,
-   "path": ""
-  }
- ],
- "enable_complete": true
+    "build": "",
+    "entry_point": "config/main.py",
+    "executable": "python3 -m config.main",
+    "input_file": "dist/input.txt",
+    "template_root": "template/",
+    "server_targets": [
+        {
+            "user": "",
+            "host": "",
+            "port": 22,
+            "path": ""
+        }
+    ],
+    "enable_complete": true
 }
