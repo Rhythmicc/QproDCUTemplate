@@ -1,23 +1,24 @@
 # QproDCUTemplate
 
-曙光 DCU 集群的程序开发模板，提供基于 Qpro Commander 设计的命令工具集，通过`qrun --help`获取详细内容。_本模板需要 Qpro 0.9.14 或以上版本，请务必阅读完本文档后再开始使用。_
+曙光 DCU 集群的程序开发模板，提供基于 Qpro Commander 设计的命令工具集，通过`qrun --help`获取详细内容。_本模板需要 Qpro 0.10.2 或以上版本，请务必阅读完本文档后再开始使用。_
 
 本文档图片中的所有`Qpro\DCUTemplate`字段在项目创建后都会被替换为`QproDCUTemplate`(相应项目名)。
 
 ## 工具集
 
-![alt=''](https://cos.rhythmlian.cn/ImgBed/0d601753dd34a2a72fb21c0197343c3c.png)
+![alt=''](https://cos.rhythmlian.cn/ImgBed/19a7fa15af341d927f38b41b2718fbdc.png)
 
 ### 注意
 
 1. 必填参数需要按顺序填写。
 2. 可选参数需要以`--<参数名> bala`方式修改默认值。
-3. 上图中的`version`可选参数默认使用最新版本编译、`batch`选项默认为`QproDCUTemplate`、`job_id`选项默认为最新的运行 ID。
+3. 上图中的`version`可选参数默认使用最新版本编译、`user`选项默认为主用户（空字符串）、`job_id`选项默认为给定用户的最新运行 ID。
 4. 上图中的`gpu`选项默认关闭，通过添加`--gpu`标志即可开启（无需赋值），开启`gpu`选项后，编译指令会增加`-D gpu`（表示在代码中添加`#define gpu`）。
+5. 您可以通过指定`user`的方式来实现多人同时开发与测试，但**仅主用户提交测试的成绩会被更新记录表**。
 
 ### 样例
 
-假设当前共有三个版本，我们希望**编译且运行**版本`2`，并且 batch 脚本指定为`dist/test.sbatch`，则命令为`qrun compile-and-run --version 2 --batch test`。
+假设当前共有三个版本，我们希望**编译且运行**版本`2`，则命令为`qrun compile-and-run --version 2`。
 
 ## 项目结构
 
@@ -34,7 +35,7 @@
 
 ## 运行
 
-1. **<font color='red'>第一次运行前</font>>: 修改`dist/QproDCUTemplate.sbatch`文件，将`你的任务队列名`替换为你的任务队列，填写`config/__init__.py`中的相关配置（包括性能计算函数、判定是否计算成功函数、includePath、libraryPath），如需自定义命令参数或测试流程则修改`dist/jobs.sh`即可，默认运行一次可执行文件。**
+1. **<font color='red'>第一次运行前</font>>: 修改`config/__init__.py`文件，将`你的队列名`替换为你的任务队列，按需填写或修改`config/__init__.py`中的相关配置（包括性能计算函数、判定是否计算成功函数、includePath、libraryPath），如需自定义命令参数或测试流程则修改`dist/jobs.sh`即可，默认运行一次可执行文件。**
 2. `qrun run`即可直接使用生成好的`dist/QproDCUTemplate.sbatch`文件作为任务提交，你可以通过调整`dist/jobs.sh`内容并执行`qrun compile ...`重新生成任务文件。
 3. 在`main.py`中，你可以修改`performance_cal`, `performance_cmp`, `performance_best`和`is_Success`函数来自定义性能统计和比较方式以及计算结果是否成功的判定函数，传入的`ct: list`参数存储了当前任务日志文件的每行字符串。
 

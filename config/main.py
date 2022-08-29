@@ -120,7 +120,7 @@ def compile(version: str = latest, gpu: bool = False, user: str = users[0] if us
 
             print(f"""#!/bin/bash
 #SBATCH -J {f'{job_name}_{user}' if user else job_name}
-#SBATCH -p ty_xd
+#SBATCH -p {queue_name}
 #SBATCH -N 1
 #SBATCH -n 8
 #SBATCH --gres=dcu:1
@@ -137,7 +137,7 @@ cd {project_path}
 
 echo [bold cyan]信息[/bold cyan] 编译中...
 
-{hipcc} -Ofast -std=c++11 -I {' -I '.join(includePath)} -L {' -L '.join(libPath)} {'-D gpu' if gpu else ''} -D VERSION='<{job_name}_v{version}.hpp>' -lomp -fopenmp -lrocsparse main.cpp -o {executable}
+{hipcc} {hipcc_flags} -I {' -I '.join(includePath)} -L {' -L '.join(libPath)} {'-D gpu' if gpu else ''} -D VERSION='<{job_name}_v{version}.hpp>' -lomp -fopenmp -lrocsparse main.cpp -o {executable}
 
 echo [bold cyan][信息][/bold cyan] 编译完成
 echo [bold cyan][信息][/bold cyan] 开始运行
@@ -245,6 +245,8 @@ def status(job_id: str = '-1', user: str = users[0] if users else ''):
             performance = performance_cal(ct)
             QproDefaultConsole.print(
                 QproInfoString, f'计算[bold green]通过[/bold green]，版本 "{version}" 指标：{performance} {performance_unit}')
+            if user:
+                return
             record = get_record()
             if version not in record:
                 record[version] = performance

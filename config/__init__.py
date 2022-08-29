@@ -1,4 +1,4 @@
-from QuickProject import QproDefaultConsole, QproInfoString, QproErrorString
+from QuickProject import QproDefaultConsole, QproInfoString, QproErrorString, _ask
 import pickle
 import json
 import os
@@ -8,7 +8,11 @@ default_sbatch = job_name
 executable = f'dist/{job_name}'
 dtk_path = '/public/software/compiler/dtk-22.04'
 
+queue_name = '<你的队列名>'
+
 hipcc = f'{dtk_path}/hip/bin/hipcc'
+hipcc_flags = '-Ofast -std=c++11'
+
 roc_include = f'{dtk_path}/rocsparse/include'
 roc_lib = f'{dtk_path}/rocsparse/lib'
 
