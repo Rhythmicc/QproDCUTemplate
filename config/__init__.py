@@ -1,4 +1,3 @@
-from QuickProject import QproDefaultConsole, QproInfoString, QproErrorString, _ask
 import pickle
 import json
 import os
@@ -32,12 +31,13 @@ users = [
     # 在此自定义用户列表，用户 "QproDCUTemplate" 必须存在
 ]
 
-performance_unit = 'GFlop/s' # 性能单位
+performance_unit = 'GFlop/s'  # 性能单位
+
 
 def performance_cal(ct: list):
     """
     在此自定义计算性能的方式
-    
+
     :param ct: 日志文件的每行内容
     """
     return 0

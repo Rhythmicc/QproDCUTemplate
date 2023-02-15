@@ -1,27 +1,16 @@
 from QuickProject.Commander import Commander
+from QuickProject import external_exec, QproDefaultConsole, QproInfoString, QproErrorString, _ask, QproDefaultStatus
 from subprocess import Popen, PIPE
 from . import *
 from . import _status_show_log, _with_permission, _ask
 
 
-app = Commander(True)
-
-
-def external_EXEC(command: str, without_output: bool = False):
-    res = Popen(command, shell=True, stdout=PIPE,
-                stderr=PIPE, encoding='utf-8')
-    ret_code = res.wait()
-    content = res.communicate()[0].strip() + res.communicate()[1].strip()
-    if ret_code and content and not without_output:
-        QproDefaultConsole.print(QproErrorString, content)
-    elif content and not without_output:
-        QproDefaultConsole.print(QproInfoString, content)
-    return ret_code, content
+app = Commander('QproDCUTemplate', True)
 
 
 def get_squeue(user: str = ''):
     name = f'{job_name}_{user}' if user else job_name
-    code, content = external_EXEC(
+    code, content = external_exec(
         f"squeue --name={name}", without_output=True)
     if code:
         return -1
@@ -36,7 +25,8 @@ def realtime_output(file: str, user: str = ''):
     def get_content(p):
         return p.stdout.readline().strip()
 
-    p = Popen(f'tail -F {file}', shell=True, stdout=PIPE, stderr=PIPE, encoding='utf-8')
+    p = Popen(f'tail -F {file}', shell=True,
+              stdout=PIPE, stderr=PIPE, encoding='utf-8')
     while True:
         while line := get_content(p):
             QproDefaultConsole.print(line)
@@ -49,7 +39,7 @@ def realtime_output(file: str, user: str = ''):
 
 def lock(user: str = ''):
     import time
-    with QproDefaultConsole.status('正在获取权限'):
+    with QproDefaultStatus('正在获取权限'):
         lock_path = f'dist/lock-{user}' if user else 'dist/lock'
         while os.path.exists(lock_path):
             time.sleep(2)
@@ -59,7 +49,7 @@ def lock(user: str = ''):
 
 def release(user: str = ''):
     lock_path = f'dist/lock-{user}' if user else 'dist/lock'
-    external_EXEC(f'rm {lock_path}')
+    external_exec(f'rm {lock_path}')
 
 
 def show_log(job_id, user: str = ''):
@@ -104,9 +94,10 @@ def compile(version: str = latest, gpu: bool = False, user: str = users[0] if us
     if not os.path.exists(job_path):
         with open(job_path, 'w') as f:
             f.write(f'#!/bin/bash\n\n')
-        QproDefaultConsole.print(QproInfoString, f'用户 {user} 的任务文件已生成，请在 {job_path} 中添加任务后重新编译')
+        QproDefaultConsole.print(
+            QproInfoString, f'用户 {user} 的任务文件已生成，请在 {job_path} 中添加任务后重新编译')
         exit(0)
-    with QproDefaultConsole.status('生成任务文件中'):
+    with QproDefaultStatus('生成任务文件中'):
         with open(job_path, 'r') as f:
             _ls = f.read().strip().split('\n')
             content = ''
@@ -116,7 +107,8 @@ def compile(version: str = latest, gpu: bool = False, user: str = users[0] if us
                 content += line + '\n'
         with open(sbatch_path, 'w') as f:
             from QuickProject import project_configure_path, dir_char
-            project_path = dir_char.join(project_configure_path.split(dir_char)[:-1])
+            project_path = dir_char.join(
+                project_configure_path.split(dir_char)[:-1])
 
             print(f"""#!/bin/bash
 #SBATCH -J {f'{job_name}_{user}' if user else job_name}
@@ -163,8 +155,8 @@ def run(user: str = users[0] if users else ''):
     if not _with_permission:
         lock(user)
     batch = user if user else default_sbatch
-    with QproDefaultConsole.status(f'提交任务 "{batch}.sbatch" 中'):
-        code, content = external_EXEC(f"sbatch < dist/{batch}.sbatch", True)
+    with QproDefaultStatus(f'提交任务 "{batch}.sbatch" 中'):
+        code, content = external_exec(f"sbatch < dist/{batch}.sbatch", True)
     if code:
         return
     job_id = content.split()[-1]
@@ -278,8 +270,8 @@ def cancel(job_id: str = '-1', user: str = users[0] if users else ''):
     """
     if job_id == '-1':
         job_id, _ = get_last_id(user)
-    with QproDefaultConsole.status("取消任务中"):
-        external_EXEC(f"scancel {job_id}")
+    with QproDefaultStatus("取消任务中"):
+        external_exec(f"scancel {job_id}")
     release(user)
 
 
@@ -290,8 +282,8 @@ def reset(version: str):
     :param version: 版本号
     """
     record = get_record()
-    with QproDefaultConsole.status("重置版本中"):
-        external_EXEC(f"rm -f template/{job_name}_v{version}.hpp")
+    with QproDefaultStatus("重置版本中"):
+        external_exec(f"rm -f template/{job_name}_v{version}.hpp")
         if f'v{version}' in record:
             record.pop(f'v{version}')
             dump_record(record)
